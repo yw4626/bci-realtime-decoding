@@ -1,0 +1,3 @@
+-r requirements.txt
+google-cloud-pubsub>=2.18.0
+streamlit

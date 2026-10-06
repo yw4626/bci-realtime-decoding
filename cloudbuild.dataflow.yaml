@@ -1,0 +1,12 @@
+# Flex Template 镜像：必须用 Dockerfile.dataflow（根目录 Dockerfile 为其他服务）。
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-f"
+      - "Dockerfile.dataflow"
+      - "-t"
+      - "${_IMAGE_URI}"
+      - "."
+images:
+  - "${_IMAGE_URI}"

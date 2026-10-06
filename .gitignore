@@ -1,0 +1,45 @@
+# Python environments and caches
+.venv/
+.venv-dataflow/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# BCI data and generated artifacts
+*.mat
+data/
+artifacts/
+*.joblib
+*.pkl
+*.pickle
+*.npz
+
+# Beam/Dataflow local output
+_beam_*
+beam-temp-*/
+local_*_out*.jsonl
+local_*_test.jsonl
+*-00000-of-00001.jsonl
+
+# Local configuration, credentials, and logs
+.env
+.env.*
+.streamlit/secrets.toml
+*credentials*.json
+service-account*.json
+*.pem
+*.key
+*.log
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

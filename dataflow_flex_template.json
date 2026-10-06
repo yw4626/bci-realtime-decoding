@@ -1,0 +1,66 @@
+{
+  "name": "bci-beam-decode",
+  "description": "Stateful BCI decode pipeline on Dataflow (Ridge simple + MLP complex).",
+  "parameters": [
+    {
+      "name": "input_subscription",
+      "label": "Input PubSub subscription",
+      "helpText": "projects/PROJECT/subscriptions/SUB_NAME",
+      "isOptional": false
+    },
+    {
+      "name": "output_topic",
+      "label": "Output PubSub topic",
+      "helpText": "projects/PROJECT/topics/TOPIC_NAME",
+      "isOptional": false
+    },
+    {
+      "name": "deadletter_topic",
+      "label": "Dead-letter PubSub topic",
+      "helpText": "projects/PROJECT/topics/TOPIC_NAME (optional)",
+      "isOptional": true
+    },
+    {
+      "name": "model_simple",
+      "label": "Simple model URI (Ridge)",
+      "helpText": "gs://.../model_simple.joblib",
+      "isOptional": false
+    },
+    {
+      "name": "model_complex",
+      "label": "Complex model URI (MLP)",
+      "helpText": "gs://.../model_mlp.joblib",
+      "isOptional": false
+    },
+    {
+      "name": "mode",
+      "label": "Decode mode",
+      "helpText": "simple | complex | blended",
+      "isOptional": true
+    },
+    {
+      "name": "window_ms",
+      "label": "Window length in ms",
+      "helpText": "Sliding feature window size (default 300)",
+      "isOptional": true
+    },
+    {
+      "name": "step_ms",
+      "label": "Decode step in ms",
+      "helpText": "Emit prediction every step_ms (default 50)",
+      "isOptional": true
+    },
+    {
+      "name": "n_channels",
+      "label": "Channel width override",
+      "helpText": "0 means use input width as-is",
+      "isOptional": true
+    },
+    {
+      "name": "gcs_model_cache_dir",
+      "label": "Worker cache path",
+      "helpText": "Optional local cache dir on worker VM",
+      "isOptional": true
+    }
+  ]
+}
