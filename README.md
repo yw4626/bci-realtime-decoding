@@ -1,31 +1,34 @@
 # BCI Realtime Decoding
 
-基于 ECoG 的五指位置解码项目，覆盖单被试离线训练、本地流式回放、Apache Beam /
-Google Cloud Dataflow 推理，以及 Pub/Sub + Streamlit 实时监控。
+A five-finger position decoding project based on ECoG signals. It supports
+single-subject offline training, local streaming replay, Apache Beam / Google
+Cloud Dataflow inference, and real-time monitoring with Pub/Sub and Streamlit.
 
-公开仓库仅包含源码和部署配置，不包含原始脑电数据、训练模型、实验日志或云端凭据。
-数据格式和许可注意事项见 [docs/DATA.md](docs/DATA.md)，模块关系见
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+This public repository contains source code and deployment configuration only.
+It does not include raw neural recordings, trained models, experiment logs, or
+cloud credentials. See [docs/DATA.md](docs/DATA.md) for the expected data
+format and licensing notes, and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+for the system design.
 
-## 功能
+## Features
 
-- Ridge、Random Forest、MLP 和 Hoeffding 回归树训练
-- 时域与生理频带滑窗特征
-- 离线回放与 Beam worker 共用的 `BCIDecodePipeline`
-- DirectRunner 本地验证及 Dataflow 流式部署
-- Pub/Sub 输入发布、输出订阅与 Streamlit 曲线监控
+- Ridge, Random Forest, MLP, and Hoeffding regression training
+- Sliding-window time-domain and physiological frequency-band features
+- A shared `BCIDecodePipeline` for offline replay and Beam workers
+- Local validation with DirectRunner and streaming deployment on Dataflow
+- Pub/Sub input publishing, output subscription, and Streamlit monitoring
 
-## 项目结构
+## Project Structure
 
 ```text
 .
-├── src/                         # 训练、特征、解码和命令行入口
-│   └── beam/                    # Beam/Dataflow 流水线
-├── app.py                       # Streamlit Pub/Sub 监控
-├── docs/                        # 数据与架构说明
-├── deploy/submit_dataflow.sh    # 直接提交 Dataflow 作业
-├── scripts/                     # Flex Template 构建与运行
-├── requirements.txt             # 离线训练和本地回放
+├── src/                         # Training, features, decoding, and CLI entry points
+│   └── beam/                    # Beam/Dataflow pipeline
+├── app.py                       # Streamlit Pub/Sub monitor
+├── docs/                        # Data and architecture documentation
+├── deploy/submit_dataflow.sh    # Direct Dataflow submission
+├── scripts/                     # Flex Template build and run scripts
+├── requirements.txt             # Offline training and local replay
 ├── requirements-streaming-tree.txt
 ├── requirements-dataflow.txt
 ├── requirements-ui.txt
@@ -34,13 +37,13 @@ Google Cloud Dataflow 推理，以及 Pub/Sub + Streamlit 实时监控。
 └── dataflow_flex_template.json
 ```
 
-## 环境
+## Requirements
 
-- Python 3.10 或更高版本（推荐 Python 3.11）
-- Windows PowerShell 可运行离线流程
-- Dataflow/Flex Template 脚本需要 Bash、Google Cloud SDK 和已配置的 GCP 项目
+- Python 3.10 or newer (Python 3.11 recommended)
+- Windows PowerShell for the offline workflow shown below
+- Bash, Google Cloud SDK, and a configured GCP project for Dataflow/Flex Template scripts
 
-创建本地环境：
+Create a local environment:
 
 ```powershell
 git clone https://github.com/yw4626/bci-realtime-decoding.git
@@ -51,48 +54,51 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## 数据准备
+## Data Preparation
 
-从合法来源获取 BCICIV MATLAB 数据，并放到本地 `data/` 目录：
+Obtain the BCICIV MATLAB data from an authorized source and place it in the
+local `data/` directory:
 
 ```text
 data/
 └── sub1_comp.mat
 ```
 
-训练文件应包含 `train_data`（时间点 × 通道）和 `train_dg`（时间点 × 5 个手指）。
-`data/`、`*.mat` 和所有训练产物均已被 Git 忽略。
+The training file must contain `train_data` with shape `(time, channels)` and
+`train_dg` with shape `(time, 5 fingers)`. The `data/` directory, all `*.mat`
+files, and generated training artifacts are ignored by Git.
 
-## 离线训练
+## Offline Training
 
-Ridge 简单分支：
+Train the Ridge simple branch:
 
 ```powershell
 python -m src.train_ridge --mat_path ".\data\sub1_comp.mat"
 ```
 
-Random Forest 复杂分支：
+Train the Random Forest complex branch:
 
 ```powershell
 python -m src.train_random_forest --mat_path ".\data\sub1_comp.mat"
 ```
 
-MLP 复杂分支：
+Train the MLP complex branch:
 
 ```powershell
 python -m src.train_nn --mat_path ".\data\sub1_comp.mat"
 ```
 
-默认输出到 `artifacts/`：
+The default outputs are written to `artifacts/`:
 
-- Ridge：`model_simple.joblib`
-- Random Forest：`model_complex.joblib`
-- MLP：`model_mlp.joblib`
-- 对应的指标 CSV、训练配置 JSON 和图表
+- Ridge: `model_simple.joblib`
+- Random Forest: `model_complex.joblib`
+- MLP: `model_mlp.joblib`
+- Corresponding metrics CSV files, training-profile JSON files, and plots
 
-训练脚本按时间顺序划分训练段和验证段。使用 `--help` 查看窗口、采样和模型参数。
+The training scripts split training and validation segments chronologically.
+Use `--help` to inspect window, sampling, and model options.
 
-### Hoeffding 流式树
+### Hoeffding Streaming Trees
 
 ```powershell
 pip install -r requirements-streaming-tree.txt
@@ -100,9 +106,10 @@ python -m src.train_hoeffding --mat_path ".\data\sub1_comp.mat"
 python -m src.run_realtime_sim_hoeffding_only --mat_path ".\data\sub1_comp.mat"
 ```
 
-## 本地解码回放
+## Local Decoding Replay
 
-先训练 Ridge 和 Random Forest，再运行共享解码 pipeline：
+Train the Ridge and Random Forest models first, then run the shared decoding
+pipeline:
 
 ```powershell
 python -m src.run_pipeline_sim `
@@ -112,8 +119,8 @@ python -m src.run_pipeline_sim `
   --latency
 ```
 
-`run_pipeline_sim` 默认读取 `model_simple.joblib` 和 `model_complex.joblib`。若只需验证
-某个模型，可使用：
+`run_pipeline_sim` reads `model_simple.joblib` and `model_complex.joblib` by
+default. To validate an individual model, use one of the following commands:
 
 ```powershell
 python -m src.run_realtime_sim_ridge_only --mat_path ".\data\sub1_comp.mat"
@@ -123,19 +130,20 @@ python -m src.run_realtime_sim_nn_only --mat_path ".\data\sub1_comp.mat"
 
 ## Beam DirectRunner
 
-安装 Dataflow 依赖：
+Install the Dataflow dependencies:
 
 ```powershell
 pip install -r requirements-dataflow.txt
 ```
 
-输入为 JSONL，每行一个时间点：
+The input is JSONL with one time point per line:
 
 ```json
 {"session_id":"demo","channels":[0.1,0.2,0.3],"sample_seq":1}
 ```
 
-`channels` 的长度必须与模型训练时的通道宽度一致。使用 Ridge + MLP 运行本地 Beam：
+The length of `channels` must match the channel width used during training.
+Run Beam locally with Ridge and MLP:
 
 ```powershell
 python -m src.beam_dataflow `
@@ -150,10 +158,11 @@ python -m src.beam_dataflow `
 
 ## Google Cloud Dataflow
 
-需要预先创建 GCS bucket、Pub/Sub 输入订阅、输出 Topic（可选 dead-letter Topic）及
-Artifact Registry 仓库，并把训练模型上传到 GCS。
+Before deployment, create a GCS bucket, a Pub/Sub input subscription, an
+output topic, an optional dead-letter topic, and an Artifact Registry
+repository. Upload the trained models to GCS.
 
-构建 Flex Template：
+Build the Flex Template:
 
 ```bash
 export GOOGLE_CLOUD_PROJECT=your-project
@@ -163,7 +172,7 @@ export GCS_BUCKET=your-bucket
 bash scripts/build_flex_template.sh
 ```
 
-运行 Flex Template：
+Run the Flex Template:
 
 ```bash
 export GOOGLE_CLOUD_PROJECT=your-project
@@ -176,12 +185,13 @@ export MODEL_COMPLEX=gs://your-bucket/artifacts/model_mlp.joblib
 bash scripts/run_flex_template.sh
 ```
 
-也可使用 `deploy/submit_dataflow.sh` 直接提交 `DataflowRunner` 作业。脚本只从环境变量
-读取项目、Topic、bucket 和模型位置，不应把真实凭据写入仓库。
+You can also use `deploy/submit_dataflow.sh` to submit a `DataflowRunner` job
+directly. The scripts read project, topic, bucket, and model locations from
+environment variables. Never store real credentials in the repository.
 
-## Pub/Sub 工具与监控
+## Pub/Sub Tools and Monitoring
 
-发布本地 ECoG 行：
+Publish local ECoG rows:
 
 ```powershell
 python -m src.publish_ecog_stream `
@@ -192,7 +202,7 @@ python -m src.publish_ecog_stream `
   --realtime
 ```
 
-命令行订阅解码结果：
+Subscribe to decoded results from the command line:
 
 ```powershell
 python -m src.subscribe_decoded `
@@ -200,7 +210,7 @@ python -m src.subscribe_decoded `
   --subscription "bci-decoded-pull"
 ```
 
-启动 Streamlit 监控：
+Start the Streamlit monitor:
 
 ```powershell
 pip install -r requirements-ui.txt
@@ -210,15 +220,21 @@ gcloud auth application-default login
 streamlit run app.py
 ```
 
-也可以在 Streamlit 侧边栏手动填写项目 ID 和订阅名。
+You can also enter the project ID and subscription name manually in the
+Streamlit sidebar.
 
-## 安全与复现
+## Security and Reproducibility
 
-- 不要提交 `.mat`、`artifacts/`、`*.joblib`、`.env` 或服务账号 JSON。
-- 训练和推理必须使用相同通道宽度、窗口参数和特征开关。
-- Dataflow 全链路会产生 GCP 费用，请在完成实验后停止作业并清理资源。
-- 本项目仅用于研究和工程实验，不用于医疗诊断。
+- Do not commit `.mat` files, `artifacts/`, `*.joblib`, `.env`, or service
+  account JSON files.
+- Training and inference must use the same channel width, window parameters,
+  and feature flags.
+- The Dataflow workflow incurs GCP charges. Stop jobs and clean up resources
+  after experiments.
+- This project is intended for research and engineering experiments only. It
+  is not a medical diagnostic system.
 
 ## License
 
-源码采用 [MIT License](LICENSE)。数据集及其衍生产物仍受各自数据提供方条款约束。
+The source code is released under the [MIT License](LICENSE). The dataset and
+derived artifacts remain subject to the data provider's terms.
