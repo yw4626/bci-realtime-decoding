@@ -18,6 +18,22 @@ for the system design.
 - Local validation with DirectRunner and streaming deployment on Dataflow
 - Pub/Sub input publishing, output subscription, and Streamlit monitoring
 
+## Live Decoding Preview
+
+The monitoring dashboard displays five-finger predictions decoded from the
+Pub/Sub output stream. Colors represent fingers, while line styles can
+distinguish parallel sessions.
+
+![Live five-finger neural decoding predictions](docs/images/five-finger-live-predictions.png)
+
+## Project Materials
+
+- [Project presentation slides](docs/reports/Neural_Decoding_Project_Slides.pdf)
+- [Technical project report](docs/reports/Real-Time_Neural_Signal_Decoding_System_Report.pdf)
+
+The public slide deck has been sanitized to remove local filesystem paths and
+specific GCP resource identifiers.
+
 ## Project Structure
 
 ```text
